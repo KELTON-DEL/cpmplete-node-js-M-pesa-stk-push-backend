@@ -142,6 +142,16 @@ app.get("/stk/:id", (req, res) => {
 // TEST ROUTE
 app.get("/", (req, res) => res.send("Daraja STK Push Backend Running"));
 
+
+// Health-check endpoint to prevent Render cold starts
+app.get('/health', (req, res) => {
+    res.status(200).json({
+        status: 'success',
+        message: 'Server is up and running',
+        timestamp: new Date().toISOString()
+    });
+});
+
 app.listen(PORT,() => console.log(`Server running on http://localhost:${PORT}`));
 
 
