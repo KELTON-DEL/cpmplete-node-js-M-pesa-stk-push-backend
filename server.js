@@ -85,7 +85,7 @@ app.post("/stk", async (req, res) => {
       PartyA: phone,
       PartyB:till,
       PhoneNumber:phone ,
-      CallBackURL: "https://showgirl-activism-tactical.ngrok-free.dev/callback",
+      CallBackURL: "https://kellcom-mpesa.onrender.com/callback",
       AccountReference: "TEST",
       TransactionDesc: "React STK Push",
     };
