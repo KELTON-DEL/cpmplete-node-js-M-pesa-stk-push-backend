@@ -85,10 +85,10 @@ const stkPayload = {
   Password: password,
   Timestamp: timestamp,
   TransactionType: "CustomerBuyGoodsOnline",
-  Amount: String(amount), // Ensure amount is also a string
+  Amount: String(amount), 
   PartyA: String(phone),
   
-  // ⚠️ CRITICAL FIX: Ensure Till Number is passed as a STRING, not a number
+  
   PartyB: String(till), 
   
   PhoneNumber: String(phone),
@@ -150,17 +150,22 @@ res.json({ CheckoutRequestID: checkoutId });
 
 
 // CHECK PAYMENT STATUS
-app.get("/stk/:id", (req, res) => {
-  const transaction = transactions[req.params.id];
+// CHECK PAYMENT STATUS ROUTE
+app.get("/api/v1/payment-status/:id", (req, res) => {
+  const checkoutId = req.params.id;
+  const transaction = transactions[checkoutId];
 
   if (!transaction) {
-    return res.status(404).json({
-      status: "NOT_FOUND",
+    return res.status(200).json({
+      status: "PENDING",
+      message: "Waiting for user action..."
     });
   }
 
   res.json({
     status: transaction.status,
+    phone: transaction.phone,
+    amount: transaction.amount
   });
 });
 
