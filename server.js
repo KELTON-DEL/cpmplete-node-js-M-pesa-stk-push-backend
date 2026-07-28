@@ -159,7 +159,7 @@ app.listen(PORT,() => console.log(`Server running on http://localhost:${PORT}`))
 // CALLBACK ROUTE
  
 
-app.post("/api/v1/callback", (req, res) => {
+app.post("/api/v1/mpesa/callback", (req, res) => {
 
   try {
 
