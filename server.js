@@ -77,7 +77,28 @@ app.post("/api/v1/stk-push", async (req, res) => {
       
       + timestamp).toString("base64");
 
-    const stkPayload = {
+
+const stkPayload = {
+  // Must be the Online Store/HQ Shortcode linked to the Till (as a string)
+  BusinessShortCode: String(SHORTCODE), 
+  
+  Password: password,
+  Timestamp: timestamp,
+  TransactionType: "CustomerBuyGoodsOnline",
+  Amount: String(amount), // Ensure amount is also a string
+  PartyA: String(phone),
+  
+  // ⚠️ CRITICAL FIX: Ensure Till Number is passed as a STRING, not a number
+  PartyB: String(till), 
+  
+  PhoneNumber: String(phone),
+  CallBackURL: "https://kellcom-mpesa.onrender.com/api/v1/mpesa/callback",
+  AccountReference: "TEST",
+  TransactionDesc: "React STK Push",
+};
+
+
+    /*const stkPayload = {
       BusinessShortCode: SHORTCODE,
       Password: password,
       Timestamp: timestamp,
@@ -90,6 +111,9 @@ app.post("/api/v1/stk-push", async (req, res) => {
       AccountReference: "TEST",
       TransactionDesc: "React STK Push",
     };
+*/
+
+
 
     console.log("Sending STK Push:", stkPayload);
 
