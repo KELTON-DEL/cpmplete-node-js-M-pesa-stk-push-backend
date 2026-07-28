@@ -157,8 +157,98 @@ app.listen(PORT,() => console.log(`Server running on http://localhost:${PORT}`))
 
 
 // CALLBACK ROUTE
- 
 
+
+app.post("/api/v1/mpesa/callback", async (req, res) => {
+  try {
+    const callbackData = req.body;
+
+    console.log(JSON.stringify(callbackData, null, 2));
+
+    // GET CALLBACK OBJECT
+    const stkCallback = callbackData.Body?.stkCallback;
+
+    if (!stkCallback) {
+      return res.status(400).json({ error: "Invalid callback structure" });
+    }
+
+    const checkoutId = stkCallback.CheckoutRequestID;
+    const resultCode = stkCallback.ResultCode;
+
+    // CHECK IF TRANSACTION EXISTS IN MEMORY / DB
+    if (!transactions[checkoutId]) {
+      transactions[checkoutId] = {};
+    }
+
+    // 1. SUCCESSFUL PAYMENT (ResultCode === 0)
+    if (resultCode === 0) {
+      transactions[checkoutId].status = "SUCCESS";
+      console.log("✅ PAYMENT SUCCESS");
+
+      // Extract metadata values safely
+      const metadataItems = stkCallback.CallbackMetadata?.Item || [];
+      
+      const amount = metadataItems.find((item) => item.Name === "Amount")?.Value;
+      const tranx_id = metadataItems.find((item) => item.Name === "MpesaReceiptNumber")?.Value;
+      const phone = metadataItems.find((item) => item.Name === "PhoneNumber")?.Value;
+
+      console.log({ phone, amount, tranx_id });
+
+      // Save successful payment to MongoDB / Database
+      const payment = new Payment({
+        number: phone,
+        amount: amount,
+        tranx_id: tranx_id,
+        checkoutId: checkoutId,
+        status: "SUCCESS"
+      });
+
+      try {
+        const savedData = await payment.save();
+        console.log("Saved successfully:", savedData);
+      } catch (dbError) {
+        console.error("Database save error:", dbError.message);
+      }
+    } 
+    // 2. FAILED / CANCELLED / TIMEOUT CASES (No CallbackMetadata provided by Safaricom)
+    else {
+      let statusString = "FAILED";
+
+      if (resultCode === 1032) {
+        statusString = "CANCELLED";
+        console.log("❌ USER CANCELLED");
+      } else if (resultCode === 1) {
+        statusString = "LOW_BALANCE";
+        console.log("❌ LOW AMOUNT");
+      } else if (resultCode === 2001) {
+        statusString = "WRONGPIN";
+        console.log("❌ WRONG PIN ENTERED");
+      } else if (resultCode === 1037) {
+        statusString = "TIMEOUT";
+        console.log("❌ TIMED OUT REQUEST");
+      } else {
+        console.log(`❌ PAYMENT FAILED WITH RESULT CODE: ${resultCode}`);
+      }
+
+      transactions[checkoutId].status = statusString;
+    }
+
+    // Always return HTTP 200 to Safaricom
+    return res.status(200).json({
+      ResultCode: 0,
+      ResultDesc: "Accepted",
+    });
+
+  } catch (error) {
+    console.log("CALLBACK ERROR:", error.message);
+
+    return res.status(500).json({
+      error: error.message,
+    });
+  }
+});
+
+/*
 app.post("/api/v1/mpesa/callback", (req, res) => {
 
   try {
@@ -267,6 +357,8 @@ app.post("/api/v1/mpesa/callback", (req, res) => {
        
 
 });
+*/
+
 
 /*
 app.post("/callback",(req,res)=>{
