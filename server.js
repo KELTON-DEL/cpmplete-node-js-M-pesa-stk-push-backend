@@ -1,4 +1,5 @@
 // IMPORT LIBRARIES
+require('newrelic');
 const express = require("express");
 const axios = require("axios");
 const mongoose = require('mongoose');
@@ -53,7 +54,7 @@ async function generateToken() {
 let transactions={};//for temporary storage
 
 // STK PUSH ENDPOINT
-app.post("/stk", async (req, res) => {
+app.post("/api/v1/stk-push", async (req, res) => {
   
   const { phone, amount } = req.body;
 
@@ -85,7 +86,7 @@ app.post("/stk", async (req, res) => {
       PartyA: phone,
       PartyB:till,
       PhoneNumber:phone ,
-      CallBackURL: "https://kellcom-mpesa.onrender.com/callback",
+      CallBackURL: "https://kellcom-mpesa.onrender.com/api/v1/mpesa/callback",
       AccountReference: "TEST",
       TransactionDesc: "React STK Push",
     };
@@ -158,7 +159,7 @@ app.listen(PORT,() => console.log(`Server running on http://localhost:${PORT}`))
 // CALLBACK ROUTE
  
 
-app.post("/callback", (req, res) => {
+app.post("/api/v1/callback", (req, res) => {
 
   try {
 
